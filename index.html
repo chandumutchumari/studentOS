@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>StudentOS — Premium Student Productivity</title>
+<meta name="description" content="StudentOS is a premium dashboard for managing tasks, goals, and study analytics." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./style.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- Background -->
+  <div class="bg-fx" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+    <div class="grid-overlay"></div>
+    <div class="particles" id="particles"></div>
+  </div>
+
+  <div class="app">
+    <!-- Sidebar -->
+    <aside class="sidebar glass">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 32 32" fill="none"><defs><linearGradient id="lg" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs><rect x="3" y="3" width="26" height="26" rx="8" fill="url(#lg)"/><path d="M10 20l6-10 6 10" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+        </div>
+        <div>
+          <div class="brand-name">StudentOS</div>
+          <div class="brand-tag">v1.0 · Premium</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a class="nav-item active" data-route="dashboard"><span class="ico">▦</span>Dashboard</a>
+        <a class="nav-item" data-route="tasks"><span class="ico">✓</span>Tasks</a>
+        <a class="nav-item" data-route="goals"><span class="ico">◎</span>Goals</a>
+        <a class="nav-item" data-route="analytics"><span class="ico">◴</span>Analytics</a>
+        <a class="nav-item" data-route="settings"><span class="ico">⚙</span>Settings</a>
+      </nav>
+
+      <div class="side-foot glass-inset">
+        <div class="streak-mini">
+          <div class="streak-num" id="sidebarStreak">0</div>
+          <div>
+            <div class="streak-label">Day Streak</div>
+            <div class="streak-sub">Keep it going</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+      <header class="topbar glass">
+        <button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button>
+        <div class="search-wrap">
+          <span class="search-ico">⌕</span>
+          <input id="globalSearch" placeholder="Search tasks, goals, anything…" />
+          <kbd>⌘K</kbd>
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" id="themeToggle" title="Toggle theme">◐</button>
+          <div class="avatar">S</div>
+        </div>
+      </header>
+
+      <!-- DASHBOARD -->
+      <section class="view" data-view="dashboard">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Overview</div>
+            <h1>Good <span id="greetTime">day</span>, Student.</h1>
+            <p class="lede">Here's how your week is shaping up.</p>
+          </div>
+          <button class="btn primary" data-quick="task">+ New Task</button>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat glass card-hover">
+            <div class="stat-top"><span>Total Tasks</span><span class="badge">All</span></div>
+            <div class="stat-val" data-counter="0" id="statTotal">0</div>
+            <div class="stat-foot up">↑ tracked</div>
+          </div>
+          <div class="stat glass card-hover">
+            <div class="stat-top"><span>Completed</span><span class="badge ok">Done</span></div>
+            <div class="stat-val" id="statDone">0</div>
+            <div class="progress"><div class="progress-bar" id="doneBar"></div></div>
+          </div>
+          <div class="stat glass card-hover">
+            <div class="stat-top"><span>Pending</span><span class="badge warn">Open</span></div>
+            <div class="stat-val" id="statPending">0</div>
+            <div class="stat-foot">Stay focused</div>
+          </div>
+          <div class="stat glass card-hover">
+            <div class="stat-top"><span>Productivity</span><span class="badge purple">Score</span></div>
+            <div class="stat-val"><span id="statScore">0</span><span class="unit">%</span></div>
+            <div class="progress"><div class="progress-bar grad" id="scoreBar"></div></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel glass">
+            <div class="panel-head">
+              <div>
+                <h3>Weekly Progress</h3>
+                <p class="muted">Tasks completed per day</p>
+              </div>
+              <span class="chip">Last 7 days</span>
+            </div>
+            <div class="chart-wrap"><canvas id="weeklyChart"></canvas></div>
+          </div>
+
+          <div class="panel glass">
+            <div class="panel-head">
+              <div>
+                <h3>Daily Focus</h3>
+                <p class="muted">Tracked focus time today</p>
+              </div>
+              <span class="chip purple"><span id="focusMins">0</span> min</span>
+            </div>
+            <div class="focus-ring">
+              <svg viewBox="0 0 160 160">
+                <circle cx="80" cy="80" r="68" stroke="rgba(255,255,255,.08)" stroke-width="14" fill="none"/>
+                <circle id="focusArc" cx="80" cy="80" r="68" stroke="url(#arcGrad)" stroke-width="14" fill="none" stroke-linecap="round" stroke-dasharray="427" stroke-dashoffset="427" transform="rotate(-90 80 80)"/>
+                <defs><linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#22d3ee"/></linearGradient></defs>
+              </svg>
+              <div class="focus-center">
+                <div class="focus-num" id="focusBig">0</div>
+                <div class="focus-lbl">minutes</div>
+              </div>
+            </div>
+            <div class="focus-actions">
+              <button class="btn ghost" data-focus="-5">−5</button>
+              <button class="btn primary" data-focus="25">+25 (Pomodoro)</button>
+              <button class="btn ghost" data-focus="-25">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel glass">
+          <div class="panel-head">
+            <div><h3>Recent Tasks</h3><p class="muted">Latest items in your queue</p></div>
+            <a class="link" data-route="tasks">View all →</a>
+          </div>
+          <div id="recentTasks" class="task-list compact"></div>
+        </div>
+      </section>
+
+      <!-- TASKS -->
+      <section class="view hidden" data-view="tasks">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Workflow</div>
+            <h1>Tasks</h1>
+            <p class="lede">Capture, prioritize, and ship.</p>
+          </div>
+          <button class="btn primary" data-quick="task">+ New Task</button>
+        </div>
+
+        <div class="toolbar glass">
+          <div class="search-wrap inline">
+            <span class="search-ico">⌕</span>
+            <input id="taskSearch" placeholder="Search tasks…" />
+          </div>
+          <select id="filterPriority" class="select">
+            <option value="">All Priorities</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+          </select>
+          <select id="filterCategory" class="select">
+            <option value="">All Categories</option>
+            <option>Study</option><option>Assignment</option><option>Exam</option><option>Project</option><option>Personal</option>
+          </select>
+          <select id="filterStatus" class="select">
+            <option value="">All Status</option>
+            <option value="open">Open</option>
+            <option value="done">Completed</option>
+          </select>
+          <select id="sortBy" class="select">
+            <option value="date">Sort: Due Date</option>
+            <option value="created">Sort: Created</option>
+            <option value="priority">Sort: Priority</option>
+          </select>
+        </div>
+
+        <div id="taskList" class="task-list"></div>
+        <div id="emptyTasks" class="empty hidden">
+          <div class="empty-art">✺</div>
+          <h3>No tasks yet</h3>
+          <p>Create your first task to start tracking progress.</p>
+          <button class="btn primary" data-quick="task">+ New Task</button>
+        </div>
+      </section>
+
+      <!-- GOALS -->
+      <section class="view hidden" data-view="goals">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Long-term</div>
+            <h1>Goals</h1>
+            <p class="lede">Track milestones that matter.</p>
+          </div>
+          <button class="btn primary" data-quick="goal">+ New Goal</button>
+        </div>
+        <div id="goalList" class="goal-grid"></div>
+        <div id="emptyGoals" class="empty hidden">
+          <div class="empty-art">◎</div>
+          <h3>Set your first goal</h3>
+          <p>Define what success looks like this semester.</p>
+          <button class="btn primary" data-quick="goal">+ New Goal</button>
+        </div>
+      </section>
+
+      <!-- ANALYTICS -->
+      <section class="view hidden" data-view="analytics">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Insights</div>
+            <h1>Analytics</h1>
+            <p class="lede">Visualize your performance trends.</p>
+          </div>
+        </div>
+        <div class="stat-grid">
+          <div class="stat glass"><div class="stat-top"><span>Completion Rate</span></div><div class="stat-val"><span id="aRate">0</span><span class="unit">%</span></div></div>
+          <div class="stat glass"><div class="stat-top"><span>Total Completed</span></div><div class="stat-val" id="aDone">0</div></div>
+          <div class="stat glass"><div class="stat-top"><span>Active Goals</span></div><div class="stat-val" id="aGoals">0</div></div>
+          <div class="stat glass"><div class="stat-top"><span>Current Streak</span></div><div class="stat-val"><span id="aStreak">0</span><span class="unit">d</span></div></div>
+        </div>
+        <div class="grid-2">
+          <div class="panel glass">
+            <div class="panel-head"><div><h3>Task Completion</h3><p class="muted">Completed vs pending</p></div></div>
+            <div class="chart-wrap"><canvas id="doughnutChart"></canvas></div>
+          </div>
+          <div class="panel glass">
+            <div class="panel-head"><div><h3>Productivity Trend</h3><p class="muted">Score over the last 7 days</p></div></div>
+            <div class="chart-wrap"><canvas id="prodChart"></canvas></div>
+          </div>
+        </div>
+        <div class="panel glass">
+          <div class="panel-head"><div><h3>Weekly Progress</h3><p class="muted">Tasks completed per day</p></div></div>
+          <div class="chart-wrap tall"><canvas id="weeklyChart2"></canvas></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="view hidden" data-view="settings">
+        <div class="page-head">
+          <div>
+            <div class="eyebrow">Preferences</div>
+            <h1>Settings</h1>
+            <p class="lede">Customize your StudentOS experience.</p>
+          </div>
+        </div>
+        <div class="panel glass">
+          <div class="setting-row">
+            <div>
+              <div class="setting-title">Appearance</div>
+              <div class="muted">Switch between dark and light theme</div>
+            </div>
+            <div class="seg">
+              <button data-theme-set="dark" class="seg-btn active">Dark</button>
+              <button data-theme-set="light" class="seg-btn">Light</button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-title">Accent</div>
+              <div class="muted">Pick your signature color</div>
+            </div>
+            <div class="swatches">
+              <button class="swatch" style="--c:#7c5cff" data-accent="#7c5cff"></button>
+              <button class="swatch" style="--c:#22d3ee" data-accent="#22d3ee"></button>
+              <button class="swatch" style="--c:#f472b6" data-accent="#f472b6"></button>
+              <button class="swatch" style="--c:#34d399" data-accent="#34d399"></button>
+              <button class="swatch" style="--c:#f59e0b" data-accent="#f59e0b"></button>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div>
+              <div class="setting-title">Reset all data</div>
+              <div class="muted">Permanently delete tasks, goals and preferences</div>
+            </div>
+            <button class="btn danger" id="resetData">Reset</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Task Modal -->
+  <div class="modal hidden" id="taskModal">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card glass">
+      <div class="modal-head">
+        <h3 id="taskModalTitle">New Task</h3>
+        <button class="icon-btn" data-close>✕</button>
+      </div>
+      <div class="form">
+        <label>Title<input id="tTitle" placeholder="e.g. Finish chemistry assignment" /></label>
+        <label>Notes<textarea id="tNotes" placeholder="Optional details…"></textarea></label>
+        <div class="form-row">
+          <label>Due Date<input id="tDue" type="date" /></label>
+          <label>Priority
+            <select id="tPriority"><option value="high">High</option><option value="medium" selected>Medium</option><option value="low">Low</option></select>
+          </label>
+          <label>Category
+            <select id="tCategory"><option>Study</option><option>Assignment</option><option>Exam</option><option>Project</option><option>Personal</option></select>
+          </label>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" data-close>Cancel</button>
+        <button class="btn primary" id="saveTask">Save Task</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal Modal -->
+  <div class="modal hidden" id="goalModal">
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-card glass">
+      <div class="modal-head">
+        <h3 id="goalModalTitle">New Goal</h3>
+        <button class="icon-btn" data-close>✕</button>
+      </div>
+      <div class="form">
+        <label>Goal<input id="gTitle" placeholder="e.g. Read 12 books this semester" /></label>
+        <div class="form-row">
+          <label>Target<input id="gTarget" type="number" min="1" value="10" /></label>
+          <label>Current<input id="gCurrent" type="number" min="0" value="0" /></label>
+          <label>Category
+            <select id="gCategory"><option>Study</option><option>Health</option><option>Career</option><option>Personal</option></select>
+          </label>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn ghost" data-close>Cancel</button>
+        <button class="btn primary" id="saveGoal">Save Goal</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="./script.js"></script>
+</body>
+</html>
